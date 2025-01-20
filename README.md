@@ -1,8 +1,10 @@
 **Overview**
+
 The Customer Reward Service is a Spring Boot application designed to calculate customer reward points based on their transaction history. It supports filtering transactions by date range and provides a REST API to fetch reward details for a given customer.
 
 
 **Features**
+
 ● Calculate reward points for transactions based on the following rules:
     ● 2 points for every dollar spent over $100.
     ● 1 point for every dollar spent over $50 (up to $100).
@@ -11,6 +13,7 @@ The Customer Reward Service is a Spring Boot application designed to calculate c
 ● Modular and extensible architecture.
 
 **Technologies Used**
+
 ● Backend: Java, Spring Boot, Hibernate
 ● Database: H2 (in-memory) / MySQL (configurable)
 ● Testing: JUnit, Mockito
