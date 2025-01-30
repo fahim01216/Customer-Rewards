@@ -37,18 +37,35 @@ src/main/java
 └── com.assignment.reward
 
     ├── controller        // REST API controllers
+       ── RewardController
     
     ├── dto               // Data Transfer Objects (DTOs)
+       ── ErrorResponse
+       ── MonthwiseRewardResponse
+       ── RewardResponse
+       ── TransactionResponse
     
     ├── entity            // JPA entities
+       ── Customer
+       ── MonthwiseReward
+       ── Transaction
     
     ├── exception         // Custom exceptions and handlers
+       ── CustomerNotFoundException
+       ── GlobalExceptionHandler
+       ── InvalidInputException
     
     ├── repository        // JPA repositories
+       ── CustomerRepository
+       ── TransactionRepository
     
     ├── service           // Business logic layer
+       ── calculatePoints
+       ── RewardPointsCalculator
+       ── RewardService
     
     └── util              // Utility classes (e.g., PointsCalculator)
+       ── ValidationUtil
     
 
 
@@ -57,8 +74,10 @@ src/test/java
 └── com.assignment.reward
 
     ├── controller        // Controller layer test cases
+       ── RewardControllerTest
     
     └── service           // Service layer test cases
+       ── RewardServiceTest
 
 
 
@@ -124,14 +143,19 @@ Content-Type: application/json
 }
 ```
 
+<<<<<<< HEAD
+=======
+GET /api/rewards/customer/1?startDate=2023-10-01&endDate=2023-11-31
+>>>>>>> 7b9b8f9bd8be8c8b9c9661bcc0a2c7eaaf9b948d
 
 **Sample Response**
 ```
 {
-  "customerId": 1,
-  "customerName": "John Doe",
+  "id": 1,
+  "customerName": "Md Fahim",
   "transactions": [
     {
+<<<<<<< HEAD
       "transactionId": 101,
       "amount": 120,
       "date": "2024-01-10",
@@ -142,10 +166,23 @@ Content-Type: application/json
       "amount": 80,
       "date": "2024-01-15",
       "points": 30
+=======
+      "id": 101,
+      "amount": 120.0,
+      "date": "2024-10-15",
+      "pointsEarned": 90
+    },
+    {
+      "id": 102,
+      "amount": 80.0,
+      "date": "2024-11-10",
+      "pointsEarned": 30
+>>>>>>> 7b9b8f9bd8be8c8b9c9661bcc0a2c7eaaf9b948d
     }
   ],
   "monthwiseRewards": [
     {
+<<<<<<< HEAD
       "month": "2024-01",
       "rewardPoints": 120
     }
@@ -153,4 +190,15 @@ Content-Type: application/json
   "totalPoints": 120
 }
 ```
+=======
+      "month": "2024-10",
+      "rewardPoints": 90
+    },
+    {
+      "month": "2024-11",
+      "rewardPoints": 30
+    }
+  ]
+}
+>>>>>>> 7b9b8f9bd8be8c8b9c9661bcc0a2c7eaaf9b948d
 
