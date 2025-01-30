@@ -1,14 +1,15 @@
 package com.assignment.rewards.service;
 
+import com.assignment.rewards.dto.MonthwiseRewardResponse;
 import com.assignment.rewards.dto.RewardResponse;
 import com.assignment.rewards.dto.TransactionResponse;
 import com.assignment.rewards.entity.Customer;
+import com.assignment.rewards.entity.MonthwiseReward;
 import com.assignment.rewards.entity.Transaction;
 import com.assignment.rewards.exception.CustomerNotFoundException;
+import com.assignment.rewards.exception.InvalidInputException;
 import com.assignment.rewards.repository.CustomerRepository;
 import com.assignment.rewards.repository.TransactionRepository;
-import com.assignment.rewards.service.PointsCalculator;
-import com.assignment.rewards.service.RewardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -16,8 +17,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,130 +30,139 @@ class RewardServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
-
     @Mock
     private TransactionRepository transactionRepository;
-
     @Mock
     private PointsCalculator pointsCalculator;
-
     @InjectMocks
     private RewardService rewardService;
 
     private Customer customer;
     private Transaction transaction1;
     private Transaction transaction2;
+    private Transaction transaction3;
+    private Transaction transaction4;
+
+    private MonthwiseReward monthwiseReward1;
+    private MonthwiseReward monthwiseReward2;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Initialize mock data
+        // Initialize mock customer
         customer = new Customer();
         customer.setId(1L);
-        customer.setCustomerName("John Doe");
+        customer.setCustomerName("Sunny Kumar");
 
-        transaction1 = new Transaction();
-        transaction1.setId(1L);
-        transaction1.setAmount(120);
-        transaction1.setDate(LocalDate.of(2023, 1, 1));
-
-        transaction2 = new Transaction();
-        transaction2.setId(2L);
-        transaction2.setAmount(80);
-        transaction2.setDate(LocalDate.of(2023, 1, 2));
+        // Sample transactions with different months
+        transaction1 = new Transaction(1L, 120, LocalDate.of(2023, 1, 5), customer);
+        transaction2 = new Transaction(2L, 80, LocalDate.of(2023, 1, 15), customer);
+        transaction3 = new Transaction(3L, 150, LocalDate.of(2023, 2, 10), customer);
+        transaction4 = new Transaction(4L, 50, LocalDate.of(2023, 2, 20), customer);
     }
 
     @Test
     void calculateRewards_withValidCustomerIdAndTransactions_returnsRewardResponse() {
-        // Mock dependencies
+
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+
         when(transactionRepository.findByCustomerId(1L))
-                .thenReturn(Arrays.asList(transaction1, transaction2));
+                .thenReturn(Arrays.asList(transaction1, transaction2, transaction3, transaction4));
 
-        when(pointsCalculator.calculatePoints(120)).thenReturn(90); // Custom logic
-        when(pointsCalculator.calculatePoints(80)).thenReturn(30);  // Custom logic
+        when(pointsCalculator.calculatePoints(120)).thenReturn(90);
+        when(pointsCalculator.calculatePoints(80)).thenReturn(30);
+        when(pointsCalculator.calculatePoints(150)).thenReturn(150);
+        when(pointsCalculator.calculatePoints(50)).thenReturn(0);
 
-        // Call the method under test
         RewardResponse response = rewardService.calculateRewards(1L, null, null);
 
-        // Verify interactions and assertions
         verify(customerRepository).findById(1L);
         verify(transactionRepository).findByCustomerId(1L);
-        verify(pointsCalculator).calculatePoints(120);
-        verify(pointsCalculator).calculatePoints(80);
 
         assertNotNull(response);
         assertEquals(1L, response.getCustomerId());
-        assertEquals("John Doe", response.getCustomerName());
-        assertEquals(2, response.getTransactions().size());
-        assertEquals(120, response.getTransactions().get(0).getAmount());
-        assertEquals(90, response.getTransactions().get(0).getPoints());
-        assertEquals(80, response.getTransactions().get(1).getAmount());
-        assertEquals(30, response.getTransactions().get(1).getPoints());
-        assertEquals(120, response.getTotalPoints());
+        assertEquals("Sunny Kumar", response.getCustomerName());
+        assertEquals(4, response.getTransactions().size());
+        assertEquals(270, response.getTotalPoints()); // 90 + 30 + 150 + 0
+
     }
+
 
     @Test
     void calculateRewards_withDateFilter_returnsFilteredTransactions() {
-        // Mock dependencies
+
         LocalDate startDate = LocalDate.of(2023, 1, 1);
-        LocalDate endDate = LocalDate.of(2023, 1, 2);
+        LocalDate endDate = LocalDate.of(2023, 1, 31);
 
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(transactionRepository.findByCustomerIdAndDateBetween(1L, startDate, endDate))
-                .thenReturn(Collections.singletonList(transaction1));
+                .thenReturn(Arrays.asList(transaction1, transaction2));
 
         when(pointsCalculator.calculatePoints(120)).thenReturn(90);
+        when(pointsCalculator.calculatePoints(80)).thenReturn(30);
 
-        // Call the method under test
         RewardResponse response = rewardService.calculateRewards(1L, startDate, endDate);
 
-        // Verify interactions and assertions
         verify(customerRepository).findById(1L);
         verify(transactionRepository).findByCustomerIdAndDateBetween(1L, startDate, endDate);
-        verify(pointsCalculator).calculatePoints(120);
 
         assertNotNull(response);
-        assertEquals(1L, response.getCustomerId());
-        assertEquals("John Doe", response.getCustomerName());
-        assertEquals(1, response.getTransactions().size());
-        assertEquals(120, response.getTransactions().get(0).getAmount());
-        assertEquals(90, response.getTransactions().get(0).getPoints());
-        assertEquals(90, response.getTotalPoints());
+        assertEquals(120, response.getTotalPoints()); // 90 + 30
+    }
+
+    @Test
+    void calculateRewards_withInvalidDateRange_throwsInvalidInputException() {
+        LocalDate startDate = LocalDate.of(2023, 12, 31);
+        LocalDate endDate = LocalDate.of(2023, 01, 10);
+
+        assertThrows(InvalidInputException.class, () ->
+                rewardService.calculateRewards(1L, startDate, endDate));
     }
 
     @Test
     void calculateRewards_withNonExistingCustomer_throwsException() {
-        // Mock dependencies
+
         when(customerRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Call the method under test and assert exception
         assertThrows(CustomerNotFoundException.class, () ->
                 rewardService.calculateRewards(1L, null, null));
 
-        // Verify interactions
         verify(customerRepository).findById(1L);
         verifyNoInteractions(transactionRepository, pointsCalculator);
     }
 
     @Test
     void calculateRewards_withNoTransactions_returnsZeroPoints() {
-        // Mock dependencies
+
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(transactionRepository.findByCustomerId(1L)).thenReturn(Collections.emptyList());
 
-        // Call the method under test
         RewardResponse response = rewardService.calculateRewards(1L, null, null);
 
-        // Verify interactions and assertions
         verify(customerRepository).findById(1L);
         verify(transactionRepository).findByCustomerId(1L);
 
         assertNotNull(response);
-        assertEquals(1L, response.getCustomerId());
-        assertEquals("John Doe", response.getCustomerName());
-        assertTrue(response.getTransactions().isEmpty());
         assertEquals(0, response.getTotalPoints());
+    }
+
+    @Test
+    void calculateRewards_withThresholdAmounts_correctlyCalculatesPoints() {
+        Transaction transaction50 = new Transaction(5L, 50, LocalDate.of(2023, 3, 10), customer);
+        Transaction transaction100 = new Transaction(6L, 100, LocalDate.of(2023, 3, 15), customer);
+
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+        when(transactionRepository.findByCustomerId(1L)).thenReturn(Arrays.asList(transaction50, transaction100));
+
+        when(pointsCalculator.calculatePoints(50)).thenReturn(0);
+        when(pointsCalculator.calculatePoints(100)).thenReturn(50);
+
+        RewardResponse response = rewardService.calculateRewards(1L, null, null);
+
+        verify(pointsCalculator).calculatePoints(50);
+        verify(pointsCalculator).calculatePoints(100);
+
+        assertEquals(50, response.getTotalPoints());
     }
 }

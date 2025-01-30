@@ -6,6 +6,7 @@ import com.assignment.rewards.dto.TransactionResponse;
 import com.assignment.rewards.entity.Customer;
 import com.assignment.rewards.entity.Transaction;
 import com.assignment.rewards.exception.CustomerNotFoundException;
+import com.assignment.rewards.exception.InvalidInputException;
 import com.assignment.rewards.repository.CustomerRepository;
 import com.assignment.rewards.repository.TransactionRepository;
 import org.slf4j.Logger;
@@ -36,21 +37,20 @@ public class RewardService {
     @Transactional
     public RewardResponse calculateRewards(Long customerId, LocalDate startDate, LocalDate endDate) {
         try {
+            if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
+                throw new InvalidInputException("Start date must be before or equal to end date.");
+            }
+
             Customer customer = customerRepository.findById(customerId)
                     .orElseThrow(() ->
                             new CustomerNotFoundException("Customer not found with ID: " + customerId));
             logger.debug("Customer data retrieved: {}", customer);
 
             List<Transaction> transactions;
-            try {
-                if (startDate != null && endDate != null) {
-                    transactions = transactionRepository.findByCustomerIdAndDateBetween(customerId, startDate, endDate);
-                } else {
-                    transactions = transactionRepository.findByCustomerId(customerId);
-                }
-            } catch (DataAccessException ex) {
-                logger.error("No transactions found for the given customer ID: {}", customerId, ex);
-                throw new CustomerNotFoundException("No transactions found for the given customer ID " + customerId);
+            if (startDate != null && endDate != null && endDate.isAfter(startDate)) {
+                transactions = transactionRepository.findByCustomerIdAndDateBetween(customerId, startDate, endDate);
+            } else {
+                transactions = transactionRepository.findByCustomerId(customerId);
             }
             logger.debug("Transactions retrieved: {}", transactions);
 
@@ -64,7 +64,6 @@ public class RewardService {
 
                 YearMonth transactionMonth = YearMonth.from(transaction.getDate());
                 monthwisePoints.put(transactionMonth, monthwisePoints.getOrDefault(transactionMonth, 0) + points);
-
                 transactionResponses.add(new TransactionResponse(transaction.getId(), transaction.getAmount(), transaction.getDate(), points));
             }
 
@@ -72,12 +71,14 @@ public class RewardService {
                     .map(mr -> new MonthwiseRewardResponse(mr.getMonth(), mr.getRewardPoints()))
                     .collect(Collectors.toList());
 
-
             return new RewardResponse(customer.getId(), customer.getCustomerName(), transactionResponses, monthwiseRewards, totalPoints);
 
-        } catch (CustomerNotFoundException e) {
-            logger.error("Customer not found error: {}", e.getMessage());
-            throw e;
+        } catch (CustomerNotFoundException ex) {
+            logger.error("Customer not found with ID:", customerId);
+            throw new CustomerNotFoundException("Customer not found with ID: " + customerId);
+        } catch (InvalidInputException e) {
+            logger.error("Start date must be before or equal to end date.", e.getMessage());
+            throw new InvalidInputException("Start date must be before or equal to end date.");
         } catch (Exception e) {
             logger.error("Error occurred while calculating rewards for customer ID {}: {}", customerId, e.getMessage());
             throw e;
