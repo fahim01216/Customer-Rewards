@@ -1,4 +1,4 @@
-package com.assignment.rewards;
+package com.assignment.rewards.service;
 
 import com.assignment.rewards.dto.RewardResponse;
 import com.assignment.rewards.dto.TransactionResponse;

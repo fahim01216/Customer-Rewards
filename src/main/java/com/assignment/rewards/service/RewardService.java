@@ -1,5 +1,6 @@
 package com.assignment.rewards.service;
 
+import com.assignment.rewards.dto.MonthwiseRewardResponse;
 import com.assignment.rewards.dto.RewardResponse;
 import com.assignment.rewards.dto.TransactionResponse;
 import com.assignment.rewards.entity.Customer;
@@ -9,9 +10,13 @@ import com.assignment.rewards.repository.CustomerRepository;
 import com.assignment.rewards.repository.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
-import java.util.List;
+import java.time.YearMonth;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +33,7 @@ public class RewardService {
         this.rewardsPointCalculator = rewardsPointCalculator;
     }
 
+    @Transactional
     public RewardResponse calculateRewards(Long customerId, LocalDate startDate, LocalDate endDate) {
         try {
             Customer customer = customerRepository.findById(customerId)
@@ -36,40 +42,45 @@ public class RewardService {
             logger.debug("Customer data retrieved: {}", customer);
 
             List<Transaction> transactions;
-            if (startDate != null && endDate != null) {
-                transactions = transactionRepository.findByCustomerIdAndDateBetween(customerId, startDate, endDate);
-            } else {
-                transactions = transactionRepository.findByCustomerId(customerId);
+            try {
+                if (startDate != null && endDate != null) {
+                    transactions = transactionRepository.findByCustomerIdAndDateBetween(customerId, startDate, endDate);
+                } else {
+                    transactions = transactionRepository.findByCustomerId(customerId);
+                }
+            } catch (DataAccessException ex) {
+                logger.error("No transactions found for the given customer ID: {}", customerId, ex);
+                throw new CustomerNotFoundException("No transactions found for the given customer ID " + customerId);
             }
             logger.debug("Transactions retrieved: {}", transactions);
 
-            final int[] totalPoints = {0};
-            logger.info("Starting reward calculation for customerId={} with startDate={} and endDate={}", customerId, startDate, endDate);
+            Map<YearMonth, Integer> monthwisePoints = new HashMap<>();
+            List<TransactionResponse> transactionResponses = new ArrayList<>();
+            int totalPoints = 0;
 
-            List<TransactionResponse> transactionResponses = transactions.stream()
-                    .map(transaction -> {
-                        int points = rewardsPointCalculator.calculatePoints(transaction.getAmount());
-                        totalPoints[0] += points;
-                        return new TransactionResponse(transaction.getId(), transaction.getAmount(), transaction.getDate(), points);
-                    })
+            for (Transaction transaction : transactions) {
+                int points = rewardsPointCalculator.calculatePoints(transaction.getAmount());
+                totalPoints += points;
+
+                YearMonth transactionMonth = YearMonth.from(transaction.getDate());
+                monthwisePoints.put(transactionMonth, monthwisePoints.getOrDefault(transactionMonth, 0) + points);
+
+                transactionResponses.add(new TransactionResponse(transaction.getId(), transaction.getAmount(), transaction.getDate(), points));
+            }
+
+            List<MonthwiseRewardResponse> monthwiseRewards = customer.getMonthwiseRewards().stream()
+                    .map(mr -> new MonthwiseRewardResponse(mr.getMonth(), mr.getRewardPoints()))
                     .collect(Collectors.toList());
 
-            return new RewardResponse(customer.getId(), customer.getCustomerName(), transactionResponses, totalPoints[0]);
+
+            return new RewardResponse(customer.getId(), customer.getCustomerName(), transactionResponses, monthwiseRewards, totalPoints);
+
+        } catch (CustomerNotFoundException e) {
+            logger.error("Customer not found error: {}", e.getMessage());
+            throw e;
         } catch (Exception e) {
             logger.error("Error occurred while calculating rewards for customer ID {}: {}", customerId, e.getMessage());
             throw e;
         }
     }
-
-//    public int calculatePoints(int amount) {
-//        int points = 0;
-//        if (amount > 100) {
-//            points += 2 * (amount - 100);
-//            amount = 100;
-//        }
-//        if (amount > 50) {
-//            points += amount - 50;
-//        }
-//        return points;
-//    }
 }

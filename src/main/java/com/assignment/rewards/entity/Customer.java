@@ -23,4 +23,7 @@ public class Customer {
     private String customerName;
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Transaction> transactions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<MonthwiseReward> monthwiseRewards = new ArrayList<>();
 }

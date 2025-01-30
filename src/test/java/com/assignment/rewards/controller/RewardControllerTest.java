@@ -1,4 +1,4 @@
-package com.assignment.rewards;
+package com.assignment.rewards.controller;
 
 import com.assignment.rewards.controller.RewardController;
 import com.assignment.rewards.dto.RewardResponse;
