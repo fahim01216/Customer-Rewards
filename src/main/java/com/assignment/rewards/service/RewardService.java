@@ -11,7 +11,6 @@ import com.assignment.rewards.repository.CustomerRepository;
 import com.assignment.rewards.repository.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,14 +73,11 @@ public class RewardService {
             return new RewardResponse(customer.getId(), customer.getCustomerName(), transactionResponses, monthwiseRewards, totalPoints);
 
         } catch (CustomerNotFoundException ex) {
-            logger.error("Customer not found with ID:", customerId);
+            logger.error("Customer not found with ID:", customerId, ex.getMessage(), ex);
             throw new CustomerNotFoundException("Customer not found with ID: " + customerId);
         } catch (InvalidInputException e) {
-            logger.error("Start date must be before or equal to end date.", e.getMessage());
-            throw new InvalidInputException("Start date must be before or equal to end date.");
-        } catch (Exception e) {
-            logger.error("Error occurred while calculating rewards for customer ID {}: {}", customerId, e.getMessage());
-            throw e;
+            logger.error("Start date must be before or equal to end date.", startDate, endDate, e.getMessage());
+            throw new InvalidInputException("Start date cannot be after end date");
         }
     }
 }

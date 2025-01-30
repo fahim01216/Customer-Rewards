@@ -113,21 +113,44 @@ endDate (optional): End date for filtering transactions.
 
 
 **Sample Request**
+```
+POST /api/rewards/customer/1
+Content-Type: application/json
 
-GET /api/rewards/customer/1?startDate=2023-01-01&endDate=2023-01-31
+{
+  "customerId": 1,
+  "startDate": "2024-01-01",
+  "endDate": "2024-01-31"
+}
+```
+
 
 **Sample Response**
-
+```
 {
   "customerId": 1,
   "customerName": "John Doe",
   "transactions": [
-  {
+    {
       "transactionId": 101,
       "amount": 120,
-      "date": "2023-01-15",
+      "date": "2024-01-10",
       "points": 90
+    },
+    {
+      "transactionId": 102,
+      "amount": 80,
+      "date": "2024-01-15",
+      "points": 30
     }
   ],
-  "totalPoints": 90
+  "monthwiseRewards": [
+    {
+      "month": "2024-01",
+      "rewardPoints": 120
+    }
+  ],
+  "totalPoints": 120
 }
+```
+

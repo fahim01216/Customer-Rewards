@@ -30,7 +30,6 @@ public class RewardController {
                                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        ValidationUtil.validateDates(startDate, endDate);
         logger.info("Fetching rewards for customerId={} from {} to {}", customerId, startDate, endDate);
         return ResponseEntity.ok(rewardsService.calculateRewards(customerId, startDate, endDate));
     }
