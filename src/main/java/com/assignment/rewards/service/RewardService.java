@@ -74,10 +74,10 @@ public class RewardService {
 
         } catch (CustomerNotFoundException ex) {
             logger.error("Customer not found with ID:", customerId, ex.getMessage(), ex);
-            throw new CustomerNotFoundException("Customer not found with ID: " + customerId);
+            throw new CustomerNotFoundException("Customer not found with ID:" + customerId);
         } catch (InvalidInputException e) {
-            logger.error("Start date must be before or equal to end date.", startDate, endDate, e.getMessage());
-            throw new InvalidInputException("Start date cannot be after end date");
+            logger.error("Start date must be before or equal to end date", startDate, endDate, e.getMessage());
+            throw new InvalidInputException("Start date cannot be after end date. Please enter valid date range");
         }
     }
 }
