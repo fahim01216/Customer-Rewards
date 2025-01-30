@@ -37,18 +37,35 @@ src/main/java
 └── com.assignment.reward
 
     ├── controller        // REST API controllers
+       ── RewardController
     
     ├── dto               // Data Transfer Objects (DTOs)
+       ── ErrorResponse
+       ── MonthwiseRewardResponse
+       ── RewardResponse
+       ── TransactionResponse
     
     ├── entity            // JPA entities
+       ── Customer
+       ── MonthwiseReward
+       ── Transaction
     
     ├── exception         // Custom exceptions and handlers
+       ── CustomerNotFoundException
+       ── GlobalExceptionHandler
+       ── InvalidInputException
     
     ├── repository        // JPA repositories
+       ── CustomerRepository
+       ── TransactionRepository
     
     ├── service           // Business logic layer
+       ── calculatePoints
+       ── RewardPointsCalculator
+       ── RewardService
     
     └── util              // Utility classes (e.g., PointsCalculator)
+       ── ValidationUtil
     
 
 
@@ -57,8 +74,10 @@ src/test/java
 └── com.assignment.reward
 
     ├── controller        // Controller layer test cases
+       ── RewardControllerTest
     
     └── service           // Service layer test cases
+       ── RewardServiceTest
 
 
 
@@ -114,20 +133,36 @@ endDate (optional): End date for filtering transactions.
 
 **Sample Request**
 
-GET /api/rewards/customer/1?startDate=2023-01-01&endDate=2023-01-31
+GET /api/rewards/customer/1?startDate=2023-10-01&endDate=2023-11-31
 
 **Sample Response**
 
 {
-  "customerId": 1,
-  "customerName": "John Doe",
+  "id": 1,
+  "customerName": "Md Fahim",
   "transactions": [
-  {
-      "transactionId": 101,
-      "amount": 120,
-      "date": "2023-01-15",
-      "points": 90
+    {
+      "id": 101,
+      "amount": 120.0,
+      "date": "2024-10-15",
+      "pointsEarned": 90
+    },
+    {
+      "id": 102,
+      "amount": 80.0,
+      "date": "2024-11-10",
+      "pointsEarned": 30
     }
   ],
-  "totalPoints": 90
+  "monthwiseRewards": [
+    {
+      "month": "2024-10",
+      "rewardPoints": 90
+    },
+    {
+      "month": "2024-11",
+      "rewardPoints": 30
+    }
+  ]
 }
+
