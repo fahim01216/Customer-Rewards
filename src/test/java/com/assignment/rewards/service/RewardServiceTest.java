@@ -1,8 +1,6 @@
 package com.assignment.rewards.service;
 
-import com.assignment.rewards.dto.MonthwiseRewardResponse;
 import com.assignment.rewards.dto.RewardResponse;
-import com.assignment.rewards.dto.TransactionResponse;
 import com.assignment.rewards.entity.Customer;
 import com.assignment.rewards.entity.MonthwiseReward;
 import com.assignment.rewards.entity.Transaction;
@@ -17,10 +15,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,7 +46,6 @@ class RewardServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Initialize mock customer
         customer = new Customer();
         customer.setId(1L);
         customer.setCustomerName("Sunny Kumar");
@@ -164,5 +159,16 @@ class RewardServiceTest {
         verify(pointsCalculator).calculatePoints(100);
 
         assertEquals(50, response.getTotalPoints());
+    }
+
+    @Test
+    void calculatePoints_correctlyCalculatesRewardPoints() {
+        RewardPointsCalculator rewardPointsCalculator  = new RewardPointsCalculator();
+
+        assertEquals(90, rewardPointsCalculator.calculatePoints(120), "Expected 90 reward points for 120 transaction");
+        assertEquals(30, rewardPointsCalculator.calculatePoints(80), "Expected 30 reward points for 80 transaction");
+        assertEquals(150, rewardPointsCalculator.calculatePoints(150), "Expected 150 reward points for 150 transaction");
+        assertEquals(0, rewardPointsCalculator.calculatePoints(50), "Expected 0 reward points for 50 transaction");
+        assertEquals(0, rewardPointsCalculator.calculatePoints(40), "Expected 0 reward points for 40 transaction");
     }
 }
