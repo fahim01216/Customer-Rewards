@@ -78,7 +78,7 @@ src/main/java
 	 
 			── RewardService
 
-            ── RewardServiceImpl
+           		── RewardServiceImpl
 	 
 src/test/java
 
