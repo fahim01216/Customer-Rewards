@@ -29,9 +29,9 @@ class RewardServiceTest {
     @Mock
     private TransactionRepository transactionRepository;
     @Mock
-    private PointsCalculator pointsCalculator;
+    private RewardPointsCalculator pointsCalculator;
     @InjectMocks
-    private RewardService rewardService;
+    private RewardServiceImpl rewardService;
 
     private Customer customer;
     private Transaction transaction1;
@@ -65,10 +65,10 @@ class RewardServiceTest {
         when(transactionRepository.findByCustomerId(1L))
                 .thenReturn(Arrays.asList(transaction1, transaction2, transaction3, transaction4));
 
-        when(pointsCalculator.calculatePoints(120)).thenReturn(90);
-        when(pointsCalculator.calculatePoints(80)).thenReturn(30);
-        when(pointsCalculator.calculatePoints(150)).thenReturn(150);
-        when(pointsCalculator.calculatePoints(50)).thenReturn(0);
+        when(pointsCalculator.calculatePoints(transaction1)).thenReturn(90);
+        when(pointsCalculator.calculatePoints(transaction2)).thenReturn(30);
+        when(pointsCalculator.calculatePoints(transaction3)).thenReturn(150);
+        when(pointsCalculator.calculatePoints(transaction4)).thenReturn(0);
 
         RewardResponse response = rewardService.calculateRewards(1L, null, null);
 
@@ -94,8 +94,8 @@ class RewardServiceTest {
         when(transactionRepository.findByCustomerIdAndDateBetween(1L, startDate, endDate))
                 .thenReturn(Arrays.asList(transaction1, transaction2));
 
-        when(pointsCalculator.calculatePoints(120)).thenReturn(90);
-        when(pointsCalculator.calculatePoints(80)).thenReturn(30);
+        when(pointsCalculator.calculatePoints(transaction1)).thenReturn(90);
+        when(pointsCalculator.calculatePoints(transaction2)).thenReturn(30);
 
         RewardResponse response = rewardService.calculateRewards(1L, startDate, endDate);
 
@@ -150,25 +150,24 @@ class RewardServiceTest {
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(transactionRepository.findByCustomerId(1L)).thenReturn(Arrays.asList(transaction50, transaction100));
 
-        when(pointsCalculator.calculatePoints(50)).thenReturn(0);
-        when(pointsCalculator.calculatePoints(100)).thenReturn(50);
+        when(pointsCalculator.calculatePoints(transaction50)).thenReturn(0);
+        when(pointsCalculator.calculatePoints(transaction100)).thenReturn(50);
 
         RewardResponse response = rewardService.calculateRewards(1L, null, null);
 
-        verify(pointsCalculator).calculatePoints(50);
-        verify(pointsCalculator).calculatePoints(100);
+        verify(pointsCalculator).calculatePoints(transaction50);
+        verify(pointsCalculator).calculatePoints(transaction100);
 
         assertEquals(50, response.getTotalPoints());
     }
 
     @Test
     void calculatePoints_correctlyCalculatesRewardPoints() {
-        RewardPointsCalculator rewardPointsCalculator  = new RewardPointsCalculator();
+        RewardPointsCalculator rewardPointsCalculator = new RewardPointsCalculator();
 
-        assertEquals(90, rewardPointsCalculator.calculatePoints(120), "Expected 90 reward points for 120 transaction");
-        assertEquals(30, rewardPointsCalculator.calculatePoints(80), "Expected 30 reward points for 80 transaction");
-        assertEquals(150, rewardPointsCalculator.calculatePoints(150), "Expected 150 reward points for 150 transaction");
-        assertEquals(0, rewardPointsCalculator.calculatePoints(50), "Expected 0 reward points for 50 transaction");
-        assertEquals(0, rewardPointsCalculator.calculatePoints(40), "Expected 0 reward points for 40 transaction");
+        assertEquals(90, rewardPointsCalculator.calculatePoints(transaction1), "Expected 90 reward points for 120 transaction");
+        assertEquals(30, rewardPointsCalculator.calculatePoints(transaction2), "Expected 30 reward points for 80 transaction");
+        assertEquals(150, rewardPointsCalculator.calculatePoints(transaction3), "Expected 150 reward points for 150 transaction");
+        assertEquals(0, rewardPointsCalculator.calculatePoints(transaction4), "Expected 0 reward points for 50 transaction");
     }
 }

@@ -66,10 +66,6 @@ src/main/java
 	 
 			── InvalidInputException
 
-		│── images
-	
-			── rewards-api.postman_collection.json
-
 		├── repository        // JPA repositories
 	
 			── CustomerRepository
@@ -77,12 +73,12 @@ src/main/java
 			── TransactionRepository
 		
 		├── service           // Business logic layer
-	
-			── calculatePoints
 	 
 			── RewardPointsCalculator
 	 
 			── RewardService
+
+            ── RewardServiceImpl
 	 
 src/test/java
 
@@ -90,11 +86,11 @@ src/test/java
 
 		├── controller        // Controller layer test cases
 	
-   		── RewardControllerTest
+   		    ── RewardControllerTest
 
 		└── service           // Service layer test cases
 	
-   		── RewardServiceTest
+   		    ── RewardServiceTest
 
 	
 **Prerequisites**
@@ -153,9 +149,7 @@ GET /api/rewards/customer/1
 Content-Type: application/json
 
 {
-  "customerId": 1,
-  "startDate": "2024-01-01",
-  "endDate": "2024-01-31"
+  "customerId": 2
 }
 ```
 
@@ -163,28 +157,38 @@ Content-Type: application/json
 
 ```
 {
-  "customerId": 1,
-  "customerName": "John Doe",
-  "transactions": [
-    {
-      "transactionId": 101,
-      "amount": 120,
-      "date": "2024-01-10",
-      "points": 90
-    },
-    {
-      "transactionId": 102,
-      "amount": 80,
-      "date": "2024-01-15",
-      "points": 30
-    }
-  ],
-  "monthwiseRewards": [
-    {
-      "month": "2024-01",
-      "rewardPoints": 120
-    }
-  ],
-  "totalPoints": 120
+    "customerId": 2,
+    "customerName": "Md Fahim",
+    "transactions": [
+        {
+            "transactionId": 3,
+            "amount": 200,
+            "date": "2025-01-05",
+            "points": 250
+        },
+        {
+            "transactionId": 5,
+            "amount": 300,
+            "date": "2025-01-10",
+            "points": 450
+        },
+        {
+            "transactionId": 7,
+            "amount": 140,
+            "date": "2025-02-11",
+            "points": 130
+        }
+    ],
+    "monthwiseRewards": [
+        {
+            "month": "2025-01",
+            "rewardPoints": 700
+        },
+        {
+            "month": "2025-02",
+            "rewardPoints": 130
+        }
+    ],
+    "totalPoints": 830
 }
 ```
